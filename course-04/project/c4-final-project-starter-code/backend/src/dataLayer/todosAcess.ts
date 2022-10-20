@@ -15,9 +15,9 @@ export class TodosAccess {
     private readonly todosTbl = process.env.TODOS_TABLE) {
   }
 
-  public createTodo = async  (todoItem: TodoItem) => {
+  public createTodo = async (todoItem: TodoItem) => {
     try {
-      const data =  await this.dbClient.put({
+      const data = await this.dbClient.put({
         Item: todoItem,
         TableName: this.todosTbl,
         ReturnValues: "ALL_OLD",
@@ -26,14 +26,14 @@ export class TodosAccess {
       logger.info(`Success - item added or updated", ${JSON.stringify(data)} ${JSON.stringify(todoItem)}`);
       return todoItem;
     } catch (err) {
-      logger.error( `Error", ${err.stack}`);
+      logger.error(`Error", ${err.stack}`);
     }
   }
 
-  
-  public updateTodo =  (todoId: string, userId: string, req: TodoUpdate) => {
+
+  public updateTodo = (todoId: string, userId: string, req: TodoUpdate) => {
     try {
-      const data =  this.dbClient.update({
+      const data = this.dbClient.update({
         Key: {
           todoId,
           userId
@@ -45,11 +45,30 @@ export class TodosAccess {
           ":d": req.dueDate,
           ":c": req.done,
         },
-      }).promise();;
+      }).promise();
       logger.info("Success - item added or updated", data);
     } catch (err) {
       logger.error("Error", err.stack);
     }
+  }
+
+  public updateTodoImageUrl = async  (todoId: string, userId: string, uploadUrl: string) => {
+    try {
+      logger.info(`Success - updating todo img url ${todoId } ${ userId } ${ uploadUrl}` );
+      await this.dbClient.update({
+          TableName: this.todosTbl,
+          Key: { userId, todoId },
+          UpdateExpression: "set attachmentUrl = :u",
+          ExpressionAttributeValues: {
+            ":u": uploadUrl.split("?")[0]
+          },
+          ReturnValues: "UPDATED_NEW"
+        }).promise();
+        logger.info(`Success - updating todo img url ${todoId} ${userId} ${uploadUrl}`);
+    } catch (err) {
+      logger.error(`Error - updating todo   ${err.stack}`);
+    }
+   
   }
 
   public deleteTodo = async (todoId: string, userId: string) => {
@@ -60,13 +79,13 @@ export class TodosAccess {
           userId
         },
         TableName: this.todosTbl
-      }).promise();;
+      }).promise();
       logger.info("Success - item added or updated", data);
     } catch (err) {
       logger.error("Error", err.stack);
     }
   }
-  
+
   public getTodosForUser = async (userid: string): Promise<TodoItem[]> => {
     try {
       const result = await this.dbClient.query({
@@ -85,18 +104,18 @@ export class TodosAccess {
       logger.error("Error", err.stack);
       return [];
     }
-   
+
   }
 }
 
 function createDynamoDBClient() {
-    if (process.env.IS_OFFLINE) {
-      console.log('Creating a local DynamoDB instance')
-      return new XAWS.DynamoDB.DocumentClient({
-        region: 'localhost',
-        endpoint: 'http://localhost:8000'
-      })
-    }
-
-    return new XAWS.DynamoDB.DocumentClient()
+  if (process.env.IS_OFFLINE) {
+    console.log('Creating a local DynamoDB instance')
+    return new XAWS.DynamoDB.DocumentClient({
+      region: 'localhost',
+      endpoint: 'http://localhost:8000'
+    })
   }
+
+  return new XAWS.DynamoDB.DocumentClient()
+}

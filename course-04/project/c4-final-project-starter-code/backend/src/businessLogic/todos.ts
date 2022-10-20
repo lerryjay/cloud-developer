@@ -20,6 +20,7 @@ export const createTodo = async (userId, req: CreateTodoRequest) => {
     userId,
     todoId: uuid.v4(),
     done: false,
+    attachmentUrl:"",
     createdAt: new Date().getTime().toString(),
     ...req
   }
@@ -39,7 +40,9 @@ export const deleteTodo = async (todoId: string, userId: string) => {
   todoAccess.deleteTodo(todoId,userId);
 }
 
-export const createAttachmentPresignedUrl = (todoId: string): string =>  {
-  return attachmentUtils.createAttachmentPresignedUrl(todoId);
+export const createAttachmentPresignedUrl = async (todoId: string, userId:string): Promise<string> =>  {
+  const url = await attachmentUtils.createAttachmentPresignedUrl(todoId);
+  await todoAccess.updateTodoImageUrl(todoId, userId, url)
+  return url;
 }
 

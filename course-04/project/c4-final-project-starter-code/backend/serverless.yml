@@ -78,7 +78,7 @@ functions:
 
   Auth:
     handler: src/lambda/auth/auth0Authorizer.handler
-
+    cors: true
   # TODO: Configure this function - 
   # Provide iamRoleStatements property for performing Actions on DynamoDB
   GetTodos:
@@ -166,7 +166,10 @@ functions:
         - s3:*
         - xray:PutTraceSegments 
         Resource: arn:aws:s3:::${self:provider.environment.ATTACHMENT_S3_BUCKET}/*
-
+      - Effect: Allow
+        Action:
+          - dynamodb:UpdateItem
+        Resource: arn:aws:dynamodb:${self:provider.region}:*:table/${self:provider.environment.TODOS_TABLE}
 resources:
   Resources:
     # Add necessary AWS resources. You will need at least the following AWS resources
