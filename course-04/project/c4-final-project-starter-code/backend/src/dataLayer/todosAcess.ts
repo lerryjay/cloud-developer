@@ -33,22 +33,29 @@ export class TodosAccess {
 
   public updateTodo = (todoId: string, userId: string, req: TodoUpdate) => {
     try {
+      logger.info(`Success - updating todo img url ${todoId} ${userId} ${JSON.stringify(req) }`);
       const data = this.dbClient.update({
         Key: {
           todoId,
           userId
         },
         TableName: this.todosTbl,
-        UpdateExpression: "set name = :n, dueDate = :d, done = :c",
+        UpdateExpression: "set #n = :n, #d = :d, #c = :c",
+        ExpressionAttributeNames: {
+          "#n": "name",
+          "#d": "dueDate",
+          "#c": "done"
+        },
         ExpressionAttributeValues: {
           ":n": req.name,
           ":d": req.dueDate,
           ":c": req.done,
         },
+        ReturnValues: "UPDATED_NEW"
       }).promise();
-      logger.info("Success - item added or updated", data);
+      logger.info(`Success - updated todo img url ${todoId} ${userId} ${JSON.stringify(req)}  ${JSON.stringify(data)}`);
     } catch (err) {
-      logger.error("Error", err.stack);
+      logger.error(`Error - updating todo   ${err.stack}`);
     }
   }
 
